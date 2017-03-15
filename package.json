@@ -1,0 +1,23 @@
+{
+  "name": "biu",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spsl/biu.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/spsl/biu/issues"
+  },
+  "homepage": "https://github.com/spsl/biu#readme",
+  "devDependencies": {
+    "webpack": "^2.2.1"
+  }
+}
