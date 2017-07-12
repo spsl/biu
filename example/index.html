@@ -1,0 +1,34 @@
+
+<html>
+
+	<body>
+
+		<div id="app">
+		    <p id="1234">姓名：{{user.name}}, {{user.name}}</p>
+		    <p id="name">年龄：{{user.age}}</p>
+		</div>
+	
+		
+		<script type="text/javascript" charset="utf-8" src="../dist/biu.js"></script>
+		<script>
+			var context = {
+				id: 123,
+				user: {
+					name: 'wo爱吃夹心饼干',
+					age: 123,
+					sex: '男'
+				}
+			};
+
+
+			var vue = new Biu({
+				el: '#app',
+				data: context
+			});
+			
+		</script>
+	</body>
+
+</html>
+
+

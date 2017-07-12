@@ -1,6 +1,8 @@
 
-(function( global ) {
-    function Observer( data, parentDep, attr ) {
+
+export default class Observer {
+
+    constructor( data, parentDep, attr ) {
 
         if( !data || typeof data !== 'object' ) {
             return;
@@ -10,17 +12,7 @@
         this.observerObject( data );
     }
 
-    Observer.prototype.observerObject = function( obj ) {
-        const self = this;
-        Object.keys( obj ).forEach(function( attr ) {
-            var val = obj[attr];
-            var dep = new Dep( self.parent, attr );
-            new Observer( val, dep, attr);
-            self.convert( attr, val, dep );
-        });
-    };
-
-    Observer.prototype.convert = function( attr, value , dep ) {
+    convert( attr, value, dep ) {
         const self = this;
         
         Object.defineProperty(this.data, attr, {
@@ -28,11 +20,9 @@
             configurable: false,
             get: function() {
                 console.log('get ' + attr + ' : ' + value);
-
                 if (Dep.target) {
                     dep.addWatchers();
                 }
-
                 return value;
             },
             set: function( newVal ) {
@@ -45,21 +35,34 @@
                 dep.notify( newVal, attr );
             }
         });
-    };
+    }
 
-
-    Observer.prototype.$watch = function(event, cb, context) {
+    $watch(event, cb, context ) {
         new Watcher( this, event, cb, context);
+    }
+
+
+     observerObject( obj ) {
+        const self = this;
+        Object.keys( obj ).forEach(function( attr ) {
+            var val = obj[attr];
+            var dep = new Dep( self.parent, attr );
+            new Observer( val, dep, attr);
+            self.convert( attr, val, dep );
+        });
     };
 
+}
 
-    function Dep(parent, attr) {
+class Dep {
+
+    constructor( parent, attr ) {
         this.parent = parent;
         this.watchers = [];
         this.attr = attr;
     }
 
-    Dep.prototype.notify = function(newVal, attr) {
+    notify( newVal, attr ) {
         this.watchers.forEach(function(watcher) {
             watcher.update(newVal);
         });
@@ -67,26 +70,23 @@
         if (this.parent) {
             this.parent.notify(newVal);
         }
-    };
+    }
 
-    Dep.prototype.addWatchers = function() {
+    addWatchers( ) {
         this.watchers.push(Dep.target);
-    };
+    }
+}
 
-    function Watcher(ob, event, cb, context) {
+class Watcher {
+
+    constructor( ob, event, cb, context ) {
         this.cb = cb;
         this.ob = ob;
         this.context = context;
         this.calculateDep(event);
     }
 
-    Watcher.prototype.register = function(data, attr) {
-        Dep.target = this;
-        data[attr];
-        Dep.target = undefined;
-    }
-
-    Watcher.prototype.calculateDep = function(event) {
+    calculateDep( event ) {
         var events = event.split('.');
 
         if (events.length == 1) {
@@ -100,31 +100,19 @@
             }
             this.register( dat, events[i]);
         }
-    };
+    }
 
+     register( data, attr ) {
+        Dep.target = this;
+        data[attr];
+        Dep.target = undefined;
+    }
 
-    Watcher.prototype.update = function(newVal) {
+    update( newVal ) {
         if (this.cb) {
             this.cb.call(this.context, newVal);
         }
     }
-
-    global.Observer = Observer;
-
-
-
-}(window));
-
-
-const a = {
-    id: 1,
-    age: 12,
-    name: {
-        first: 'sai',
-        last: 'sun'
-    }
+    
 }
-
-
-const b = new Observer(a);
 

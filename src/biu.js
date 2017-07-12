@@ -1,7 +1,11 @@
 
+import Observer from './observer';
 
-(function(bindTo) {
-    function Vue(data) {
+import {checkIsDirective} from './util';
+
+export default class Biu {
+
+    constructor( data ) {
         this.element = document.querySelector(data.el);
         //依赖对象
         var observer = new Observer(data.data);
@@ -23,7 +27,7 @@
 
 
     // 目前只支持解析{{value}} 这样的文本节点的渲染
-    Vue.prototype._parseToDirective = function (element) {
+    _parseToDirective ( element ) {
 
         // 如果是需要渲染的文本节点, 则生成一个新的Directive, 等待渲染
         if ( checkIsDirective( element ) ) {
@@ -40,23 +44,43 @@
         });
     }
 
-    Vue.prototype.render = function() {
+
+
+    // 目前只支持解析{{value}} 这样的文本节点的渲染
+    _parseToDirective (element) {
+        // 如果是需要渲染的文本节点, 则生成一个新的Directive, 等待渲染
+        if ( checkIsDirective( element ) ) {
+            this.directives.push( new Directive(this, element ) );
+        }
+
+        // 递归的遍历所有的子节点, 找到所有的文本节点
+        if (!element.hasChildNodes()) {
+            return;
+        }
+        var self = this;
+        element.childNodes.forEach(function( childNode ) {
+            self._parseToDirective( childNode );
+        });
+    }
+
+
+
+    render() {
        this.directives.forEach(function(directive) {
            directive.render();
        });
     }
 
-    // 验证节点的类型是文本节点, 同时包含待解析的指令
-    function checkIsDirective(element) {
-        if (element.nodeType === 3  ) {
-            if (element.nodeValue && element.nodeValue.indexOf('{{') != -1) {
-                return true;
-            }
-        }
-        return false;
-    }
 
-    function Directive(vue, element) {
+
+
+}
+
+
+
+
+ export class Directive {
+    constructor( vue, element ) {
         this.element = element;
         this.type = 'text';
         this.vue = vue;
@@ -70,7 +94,7 @@
     }
 
     // 渲染节点, 根据依赖列表, 替换{{user.name}} 等这种文本
-    Directive.prototype.render = function() {
+    render() {
 
         var self = this;
         var templateNodeValue = self.nodeValue;
@@ -82,8 +106,9 @@
         this.element.nodeValue = templateNodeValue;
     }
 
+
     // 查找值, 把字符串形式的 user.name 绑定到 context 上面
-    Directive.prototype.getValue = function(context, key) {
+    getValue( context, key ) {
         // 目前只支持 以 .  分割的获取属性的方式
         var events = key.split('.');
         var i = 1;
@@ -100,7 +125,7 @@
     }
 
 
-    Directive.prototype.parseDeps = function(tpl) {
+    parseDeps(tpl) {
         var result = {};
         var reg = /{{([a-zA-Z_$][a-zA-Z_$0-9\.]*)}}/g;
         tpl.replace(reg, function (raw, key, offset, str) {
@@ -111,8 +136,11 @@
         return result;
     }
 
+
+
+
     // 对所有的需要的依赖项, 注册监听, 动态更新视图
-    Directive.prototype.registerWatcher = function() {
+   registerWatcher() {
         var self = this;
 
         Object.keys( this.depAttrs ).forEach(function (rs) {
@@ -123,26 +151,5 @@
         });
     }
 
+}
 
-    this.Vue = Vue;
-
-
-}(this));
-
-
-
-
-var context = {
-    id: 123,
-    user: {
-        name: 'wo爱吃夹心饼干',
-        age: 123,
-        sex: '男'
-    }
-};
-
-
-var vue = new Vue({
-    el: '#app',
-    data: context
-})
