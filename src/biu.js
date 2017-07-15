@@ -1,6 +1,8 @@
 
 import Observer from './observer';
 
+import Parse from './compile';
+
 import {checkIsDirective} from './util';
 
 export default class Biu {
@@ -71,9 +73,6 @@ export default class Biu {
        });
     }
 
-
-
-
 }
 
 
@@ -109,26 +108,15 @@ export default class Biu {
 
     // 查找值, 把字符串形式的 user.name 绑定到 context 上面
     getValue( context, key ) {
-        // 目前只支持 以 .  分割的获取属性的方式
-        var events = key.split('.');
-        var i = 1;
-        var value = context[events[0]];
-        try {
-            while( value && i < events.length ) {
-                value = value[events[i]];
-                i++;
-            }
-            return value;
-        } catch (err) {
-            return undefined;
-        }
+        return new Parse().compile(key, context);
     }
 
 
     parseDeps(tpl) {
         var result = {};
-        var reg = /{{([a-zA-Z_$][a-zA-Z_$0-9\.]*)}}/g;
+        var reg = /\{\{([^\}]*)\}\}/g;;
         tpl.replace(reg, function (raw, key, offset, str) {
+            key = key.trim();
             result[raw] = {
                 key: key
             };
@@ -142,7 +130,6 @@ export default class Biu {
     // 对所有的需要的依赖项, 注册监听, 动态更新视图
    registerWatcher() {
         var self = this;
-
         Object.keys( this.depAttrs ).forEach(function (rs) {
             var val = self.depAttrs[rs];
             self.vue.$watch(val.key, function() {
