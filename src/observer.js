@@ -89,39 +89,19 @@ class Watcher {
     // 计算依赖, 找到最小的依赖值(即最后面的属性), 然后设置监听
     calculateDep( event ) {
 
-
         var attrList = splitMultiDepFromOneExpersion( event ).mainAttrArr;
 
-
-        
-
-        function getDeepVal( _data ) {
+        function getDeepVal( _data, isLastDeep ) {
 
             for( let i = 0 ; i < attrList.length - 1; i ++ ) {
                 let attrName = attrList[i];
                 _data = _data[attrName];
             }
-
             return {obj:  _data, attr: attrList[attrList.length - 1] };
         }
 
-
         let regiObj = getDeepVal( this.ob.data );
         this.register( regiObj.obj , regiObj.attr );
-
-
-        // var events = event.split('.');
-        // if (events.length == 1) {
-        //     this.register( this.ob.data, event);
-        // } else {
-        //     var i = 1;
-        //     var dat = this.ob.data[events[0]];
-        //     while(dat && i < events.length - 1) {
-        //         dat = dat[events[i]];
-        //         i++;
-        //     }
-        //     this.register( dat, events[i] );
-        // }
     }
 
      register( data, attr ) {

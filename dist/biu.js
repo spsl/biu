@@ -87,12 +87,39 @@ let randomAttrReplace = function () {
     return preStr + randInt;
 };
 
-let splitExpersionAttr = function (expr, context) {};
+let splitExpersionAttr = function (expr, context) {
+    var attrResult = splitMultiDepFromOneExpersion(expr);
+
+    let checkIsReplace = function (attrName) {
+
+        return attrName.indexOf('__$__') > -1;
+    };
+
+    let deepGetValue = function (resObj, scope) {
+        let tmpValue = scope;
+
+        resObj.mainAttrArr.forEach(function (attrName) {
+
+            if (attrName != '') {
+
+                if (checkIsReplace(attrName)) {
+                    tmpValue = tmpValue[deepGetValue(resObj.parentAttr[attrName].result, context)];
+                } else {
+                    tmpValue = tmpValue[attrName];
+                }
+            }
+        });
+
+        return tmpValue;
+    };
+
+    return deepGetValue(attrResult, context);
+};
 
 // 根据一个表达式里面, 拆分出多个依赖像, 比如 user.addrs[currentAddrId].sheng, 这里面其实是有了个依赖的, 一个是currentAddrId, 另外一个就是 user.addrs[].sheng,
 // 这种情况其实有一个问题, 就是如果currentAddrId 改变了之后, 对应的那个sheng 当时是没有添加到依赖的, 这时候, 如果变了的话, 就检测不到了, 
 // TODO 可以先忽略这种情况, 以后有更好的思路了再做
-let splitMultiDepFromOneExpersion = function (expr, context) {
+let splitMultiDepFromOneExpersion = function (expr) {
     let parseSubPath = function (lastPath) {
         let result = '';
         let stack = [];
@@ -118,7 +145,7 @@ let splitMultiDepFromOneExpersion = function (expr, context) {
         return result;
     };
 
-    let compilePath = function (path, scope) {
+    let compilePath = function (path) {
         let length = path.length;
 
         let stack = [];
@@ -236,7 +263,7 @@ let splitMultiDepFromOneExpersion = function (expr, context) {
 
         return {
             mainAttrArr: attrArr,
-            otherAttrDep: otherPath
+            parentAttr: otherPath
         };
     };
 
@@ -305,23 +332,7 @@ class Biu {
         if (!element.hasChildNodes()) {
             return;
         }
-        var self = this;
-        element.childNodes.forEach(function (childNode) {
-            self._parseToDirective(childNode);
-        });
-    }
 
-    // 目前只支持解析{{value}} 这样的文本节点的渲染
-    _parseToDirective(element) {
-        // 如果是需要渲染的文本节点, 则生成一个新的Directive, 等待渲染
-        if (Object(__WEBPACK_IMPORTED_MODULE_2__util__["a" /* checkIsDirective */])(element)) {
-            this.directives.push(new Directive(this, element));
-        }
-
-        // 递归的遍历所有的子节点, 找到所有的文本节点
-        if (!element.hasChildNodes()) {
-            return;
-        }
         var self = this;
         element.childNodes.forEach(function (childNode) {
             self._parseToDirective(childNode);
@@ -520,31 +531,17 @@ class Watcher {
 
         var attrList = Object(__WEBPACK_IMPORTED_MODULE_0__util__["b" /* splitMultiDepFromOneExpersion */])(event).mainAttrArr;
 
-        function getDeepVal(_data) {
+        function getDeepVal(_data, isLastDeep) {
 
             for (let i = 0; i < attrList.length - 1; i++) {
                 let attrName = attrList[i];
                 _data = _data[attrName];
             }
-
             return { obj: _data, attr: attrList[attrList.length - 1] };
         }
 
         let regiObj = getDeepVal(this.ob.data);
         this.register(regiObj.obj, regiObj.attr);
-
-        // var events = event.split('.');
-        // if (events.length == 1) {
-        //     this.register( this.ob.data, event);
-        // } else {
-        //     var i = 1;
-        //     var dat = this.ob.data[events[0]];
-        //     while(dat && i < events.length - 1) {
-        //         dat = dat[events[i]];
-        //         i++;
-        //     }
-        //     this.register( dat, events[i] );
-        // }
     }
 
     register(data, attr) {

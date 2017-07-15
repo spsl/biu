@@ -40,35 +40,15 @@ export default class Biu {
         if (!element.hasChildNodes()) {
             return;
         }
+
         var self = this;
         element.childNodes.forEach(function( childNode ) {
             self._parseToDirective( childNode );
         });
     }
-
-
-
-    // 目前只支持解析{{value}} 这样的文本节点的渲染
-    _parseToDirective (element) {
-        // 如果是需要渲染的文本节点, 则生成一个新的Directive, 等待渲染
-        if ( checkIsDirective( element ) ) {
-            this.directives.push( new Directive(this, element ) );
-        }
-
-        // 递归的遍历所有的子节点, 找到所有的文本节点
-        if (!element.hasChildNodes()) {
-            return;
-        }
-        var self = this;
-        element.childNodes.forEach(function( childNode ) {
-            self._parseToDirective( childNode );
-        });
-    }
-
-
 
     render() {
-       this.directives.forEach(function(directive) {
+       this.directives.forEach( function( directive ) {
            directive.render();
        });
     }
