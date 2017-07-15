@@ -15,7 +15,7 @@ export default class Biu {
         this.data = observer.data;
 
         this.$watch = function( watchKey, cb ) {
-            observer.$watch(watchKey, cb);
+            observer.$watch( watchKey, cb );
         }
 
         this.directives = [];
