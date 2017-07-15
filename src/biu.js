@@ -85,8 +85,8 @@ export default class Biu {
         this.vue = vue;
         this.nodeValue = this.element.nodeValue;
 
-        // 这个指令的依赖列表, 比如是{{user.name}} {{user.age}} 一个指令里面又两个带渲染的文本, 那么会有两个依赖, 待优化
-        // TODO
+        //TODO 对于表达式的支持, 一个语句依赖多个值, 其实也是计算属性的依赖, 可以先完成计算属性的依赖,
+        // 看来是需要重构这个结构了 
         this.depAttrs = this.parseDeps( element.nodeValue );
 
         this.registerWatcher();
@@ -117,9 +117,26 @@ export default class Biu {
         var reg = /\{\{([^\}]*)\}\}/g;;
         tpl.replace(reg, function (raw, key, offset, str) {
             key = key.trim();
-            result[raw] = {
-                key: key
-            };
+
+            if ( key.indexOf('+') > -1 ) {
+                var subKeys = key.split('+');
+
+                var depsList = subKeys.map( function( item ) {
+                    return item.trim();
+                } );
+
+                result[raw] = {
+                    key: key,
+                    depsList: depsList
+                };
+
+            } else {
+                result[raw] = {
+                    key: key
+                };
+            }
+
+           
         });
         return result;
     }
@@ -132,9 +149,21 @@ export default class Biu {
         var self = this;
         Object.keys( this.depAttrs ).forEach(function (rs) {
             var val = self.depAttrs[rs];
-            self.vue.$watch(val.key, function() {
-                self.render();
-            });
+
+            if( val.depsList ) {
+                
+                val.depsList.forEach( function( item ) {
+                    self.vue.$watch(item, function() {
+                        self.render();
+                    });
+                });
+
+            } else {
+                self.vue.$watch(val.key, function() {
+                    self.render();
+                });
+            }
+           
         });
     }
 
