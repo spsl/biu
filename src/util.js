@@ -204,4 +204,4 @@ let splitMultiDepFromOneExpersion = function( expr ) {
     return compilePath( expr );
 }
 
-export { checkIsDirective, splitMultiDepFromOneExpersion };
+export { checkIsDirective, splitMultiDepFromOneExpersion, splitExpersionAttr };

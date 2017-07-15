@@ -1,4 +1,6 @@
 
+import { splitExpersionAttr } from './util';
+
  export default class Parse{ 
 
     constructor( ) {
@@ -87,7 +89,7 @@
             
             let path = subPath.join('');
             subPath = [];
-            var value = _this.compilePath( path, scope );
+            var value = splitExpersionAttr( path, scope );
             let lastOper = stack.pop();
 
             if( lastOper ) {
@@ -150,150 +152,10 @@
     }
 
 
-    compilePath( path , scope ) {
-        let length = path.length;
-
-        let stack = [];
-        let tmpAttr = '';
-        
-        let tmpScope = scope;
-
-        let isConstValue = true;
-        let exprStack = [];
-
-        let _this = this;
-
-        let processDot = function( currentWord  ) {
-            // 如果是. 那么需要拿到前面的word, 进行取值操作
-            let lastStr = stack.pop();
-            if ( lastStr == '"' || lastStr == "'") {
-                tmpAttr = tmpAttr + currentWord;
-            } else {
-                if ( tmpAttr.trim() != '' ) {
-                    tmpScope = _this.getValue(tmpAttr, tmpScope);
-
-                    tmpAttr = '';
-                    isConstValue = false;
-                }
-            }
-        };
-
-        let processLeftBracket = function( currentWord  ) {
-            tmpScope = _this.getValue(tmpAttr, tmpScope);
-            tmpAttr = '';
-            stack.push('[');
-            isConstValue = false;
-        };
-
-        let processRightBracket = function( currentWord ) {
-            var lastStr = stack.pop();
-
-            if ( lastStr == '[' ) {
-                tmpScope = _this.getValue(tmpAttr, tmpScope);
-                tmpAttr = '';
-                isConstValue = false;
-            }
-        };
-
-        let processSingleQuote = function( currentWord  ) {
-            var lastStr = stack.pop();
-
-            if ( lastStr == "'") {
-                if( isConstValue ) {
-                    tmpScope = tmpAttr;
-                    tmpAttr = '';
-                }
-            } else {
-                stack.push(lastStr);
-                stack.push("'");
-            }
-            
-        };
-
-        let processDoubleQuote = function( currentWord  ) {
-            var lastStr = stack.pop();
-
-            if ( lastStr != '"') {
-                stack.push(lastStr);
-                stack.push('"');
-            } else {
-                if( isConstValue ) {
-                    tmpScope = tmpAttr;
-                    tmpAttr = '';
-                }
-            }
-        }
-
-        let processBlack = function( currentWord ) {};
-
-
-        let processDefaultWord = function( currentWord, index ) {
-            var lastStr = stack.pop();
-
-            if ( lastStr === '[' ) {
-                var subPath = _this.parseSubPath( path.substr(index) );
-                var value = _this.parsePath( subPath, scope );
-                tmpScope = _this.getValue(value, tmpScope);
-                index = index + subPath.length;
-                isConstValue = false;
-                return index;
-            } else {
-                tmpAttr = tmpAttr + currentWord;
-                stack.push( lastStr );
-            }
-        }
-
-        let processExpr = function( currentWord, index ) {
-
-            _this.exprStack.push( tmpScope );
-            _this.exprStack.push( currentWord );
-
-
-            var subExpr = _this.parseSubExpr( path.substr(index + 1) );
-            var value = _this.parsePath( subExpr, scope );
-            
-            if ( currentWord == '+') {
-                tmpScope = tmpScope + value;
-            }
-            isConstValue = false;
-            return index + subExpr.length + 1;;
-        };
-
-        
-
-        for(let index = 0; index < length; index ++ ) {
-            let currentWord = path[index];
-
-            switch( currentWord ) {
-                case '.': processDot( currentWord ); break;
-                case '[': processLeftBracket( currentWord ); break;
-                case ']': processRightBracket( currentWord ); break;
-                case '"': processDoubleQuote( currentWord ); break;
-                case "'": processSingleQuote( currentWord ); break;
-                case ' ': processBlack( currentWord ); break;
-                case '+':  
-                case '-': 
-                case '*': 
-                case '/': break;
-                case "|": break;
-                case "&": break;
-                default: index = processDefaultWord( currentWord, index ) || index; break;
-            }
-        }
-        
-        
-        if ( tmpAttr.trim() != '' ) {
-                tmpScope = this.getValue( tmpAttr, tmpScope );
-        }
-        return tmpScope;
-    }
-
 }
 
 
 export class Filter{ 
-
-
 
     constructor() {
         this.filters = {};
