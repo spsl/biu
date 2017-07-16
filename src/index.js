@@ -1,3 +1,3 @@
 import Biu from './biu';
 
-window.Biu = Biu;
+this.Biu = Biu;

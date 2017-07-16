@@ -142,7 +142,7 @@ import { splitExpersionAttr } from './util';
         for( let i = 0; i < length; i ++ ) {
             let current = lastPath[i];
             
-            if( current == '+' || current == '-' || current == '*' ||current == '/' ) {
+            if( current == '+' || current == '-' || current == '*' || current == '/' ) {
                 return result;
             }  else {
                 result = result + current;

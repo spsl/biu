@@ -282,7 +282,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__biu__ = __webpack_require__(2);
 
 
-window.Biu = __WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */];
+this.Biu = __WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */];
 
 /***/ }),
 /* 2 */
