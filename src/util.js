@@ -32,6 +32,10 @@ let splitExpersionAttr = function( expr, context ) {
     let deepGetValue = function( resObj, scope ) {
         let tmpValue = scope;
 
+        if ( resObj.numberConst === true ) {
+            return expr;
+        }
+
         resObj.mainAttrArr.forEach( function( attrName ) {
             
             if ( attrName != '' ) {
@@ -79,6 +83,16 @@ let splitMultiDepFromOneExpersion = function( expr ) {
             } 
         }
         return result;
+    }
+
+    // 检查是否是数字常量
+    let checkIsNumberConst = function( expr ) {
+        if ( expr.indexOf('"') > -1 || expr.indexOf("'") > -1 ) {
+            return false;
+        }
+
+
+        return !isNaN( expr );
     }
 
     let compilePath = function( path ) {
@@ -175,6 +189,22 @@ let splitMultiDepFromOneExpersion = function( expr ) {
             }
         }
         
+
+
+        // 先检查是否是数字常量, 如果是的话, 那么就需要直接返回这个数字常量了
+        
+
+        if( checkIsNumberConst( path ) ) {
+            return {
+                numberConst: true,
+                attrArr: [path],
+                parentAttr: otherPath
+            }
+        }
+
+
+        
+
 
         for(let index = 0; index < length; index ++ ) {
             let currehtChar = path[index];
