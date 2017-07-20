@@ -4,7 +4,7 @@
 	<body>
 
 		<div id="app">
-		    <p id="1234">姓名：{{ user.name }}, {{ user["name"] + user.name }}</p>
+		    <p id="1234">姓名：{{ user["name"] +  user.name }}, {{ user["name"] + '   hello world  ' + 23 }}</p>
 		    <p id="name">年龄：{{ user['age'] + 123 }} </p>
 		</div>
 		
@@ -20,7 +20,7 @@
 				}
 			};
 
-			var vue = new biu({
+			var vue = new Biu({
 				el: '#app',
 				data: context
 			});

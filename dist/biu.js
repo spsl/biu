@@ -93,14 +93,14 @@ let splitExpersionAttr = function (expr, context) {
 
     let checkIsReplace = function (attrName) {
 
-        return attrName.indexOf('__$__') > -1;
+        return ('' + attrName).indexOf('__$__') > -1;
     };
 
     let deepGetValue = function (resObj, scope) {
         let tmpValue = scope;
 
-        if (resObj.numberConst === true) {
-            return expr;
+        if (resObj.isConst === true) {
+            return resObj.mainAttrArr[0];
         }
 
         resObj.mainAttrArr.forEach(function (attrName) {
@@ -152,11 +152,21 @@ let splitMultiDepFromOneExpersion = function (expr) {
 
     // 检查是否是数字常量
     let checkIsNumberConst = function (expr) {
+        expr = expr.trim();
         if (expr.indexOf('"') > -1 || expr.indexOf("'") > -1) {
             return false;
         }
-
         return !isNaN(expr);
+    };
+
+    let checkIsStrConst = function (expr) {
+
+        expr = expr.trim();
+        var length = expr.length;
+        if (expr[0] == '"' && expr[length - 1] == '"' || expr[0] == "'" && expr[length - 1] == "'") {
+            return true;
+        }
+        return false;
     };
 
     let compilePath = function (path) {
@@ -255,8 +265,18 @@ let splitMultiDepFromOneExpersion = function (expr) {
 
         if (checkIsNumberConst(path)) {
             return {
-                numberConst: true,
-                attrArr: [path],
+                isConst: true,
+                mainAttrArr: [parseFloat(path)],
+                parentAttr: otherPath
+            };
+        }
+
+        if (checkIsStrConst(path)) {
+            path = path.trim();
+            let length = path.length;
+            return {
+                isConst: true,
+                mainAttrArr: [path.substr(1, path.length - 2)],
                 parentAttr: otherPath
             };
         }
@@ -306,6 +326,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__biu__ = __webpack_require__(2);
 
 
+console.log(__WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */]);
+console.log(window);
+window.Biu = __WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */];
 window.biu = __WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */];
 
 /***/ }),
@@ -554,7 +577,13 @@ class Watcher {
     // 计算依赖, 找到最小的依赖值(即最后面的属性), 然后设置监听
     calculateDep(event) {
 
-        var attrList = Object(__WEBPACK_IMPORTED_MODULE_0__util__["c" /* splitMultiDepFromOneExpersion */])(event).mainAttrArr;
+        var compileResult = Object(__WEBPACK_IMPORTED_MODULE_0__util__["c" /* splitMultiDepFromOneExpersion */])(event);
+
+        if (compileResult.isConst) {
+            return;
+        }
+
+        var attrList = compileResult.mainAttrArr;
 
         function getDeepVal(_data, isLastDeep) {
 

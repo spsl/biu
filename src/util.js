@@ -25,15 +25,15 @@ let splitExpersionAttr = function( expr, context ) {
     var attrResult = splitMultiDepFromOneExpersion( expr );
 
     let checkIsReplace = function( attrName ) {
-
-        return attrName.indexOf('__$__') > -1;
+            
+        return ('' + attrName).indexOf('__$__') > -1;
     }
 
     let deepGetValue = function( resObj, scope ) {
         let tmpValue = scope;
 
-        if ( resObj.numberConst === true ) {
-            return expr;
+        if ( resObj.isConst === true ) {
+            return resObj.mainAttrArr[0];
         }
 
         resObj.mainAttrArr.forEach( function( attrName ) {
@@ -87,12 +87,21 @@ let splitMultiDepFromOneExpersion = function( expr ) {
 
     // 检查是否是数字常量
     let checkIsNumberConst = function( expr ) {
+        expr = expr.trim();
         if ( expr.indexOf('"') > -1 || expr.indexOf("'") > -1 ) {
             return false;
         }
-
-
         return !isNaN( expr );
+    }
+
+    let checkIsStrConst = function( expr ) {
+        
+        expr = expr.trim();
+        var length = expr.length;
+        if( expr[0] == '"' && expr[length - 1 ] == '"'  || expr[0] == "'" && expr[length - 1] == "'" ) {
+            return true;
+        }
+        return false;
     }
 
     let compilePath = function( path ) {
@@ -196,11 +205,23 @@ let splitMultiDepFromOneExpersion = function( expr ) {
 
         if( checkIsNumberConst( path ) ) {
             return {
-                numberConst: true,
-                attrArr: [path],
+                isConst: true,
+                mainAttrArr: [parseFloat(path)],
                 parentAttr: otherPath
             }
         }
+
+        if( checkIsStrConst( path ) ) {
+            path = path.trim();
+            let length = path.length;
+            return {
+                isConst: true,
+                mainAttrArr:[path.substr(1, path.length - 2)],
+                parentAttr: otherPath
+            }
+        }
+
+
 
 
         
