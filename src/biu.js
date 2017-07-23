@@ -5,6 +5,8 @@ import Parse from './compile';
 
 import {checkIsDirective} from './util';
 
+import filter from './filter';
+
 export default class Biu {
 
     constructor( data ) {
@@ -25,6 +27,8 @@ export default class Biu {
 
         // 调用directive 的render方法, 使directive 渲染自己
         this.render();
+
+        this._filter = filter;
     }
 
 
@@ -53,6 +57,9 @@ export default class Biu {
        });
     }
 
+    filter( filterName, filterCall ) {
+        this._filter.filter( filterName, filterCall );
+    }
 }
 
 
@@ -98,21 +105,31 @@ export default class Biu {
         tpl.replace(reg, function (raw, key, offset, str) {
             key = key.trim();
 
-            if ( key.indexOf('+') > -1 ) {
-                var subKeys = key.split('+');
+
+            key = key.replace('||', 'or_replace');
+            var filters = key.split('|');
+
+            for( let i = 0 ; i < filters.length; i ++ ) {
+                filters[i] = filters[i].replace('or_replace', '||');
+            }
+
+            var mainExpr = filters[0];
+
+            if ( mainExpr.indexOf('+') > -1 ) {
+                var subKeys =mainExpr.split('+');
 
                 var depsList = subKeys.map( function( item ) {
                     return item.trim();
                 } );
 
                 result[raw] = {
-                    key: key,
+                    key: mainExpr,
                     depsList: depsList
                 };
 
             } else {
                 result[raw] = {
-                    key: key
+                    key: mainExpr
                 };
             }
 
