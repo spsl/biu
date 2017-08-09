@@ -148,6 +148,10 @@ import filter from './filter';
                 let filtExpr = filterName.split(':');
                 filterName = filtExpr[0];
                 let filterInputs = filtExpr.slice(1);
+
+                filterInputs = filterInputs.map( function( inputExpr ) {
+                    return new Parse().compile( inputExpr, scope );
+                });
                 result = filter.calculate( result, filterName, filterInputs );
             });
             

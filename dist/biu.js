@@ -170,6 +170,15 @@ let splitMultiDepFromOneExpersion = function (expr) {
     };
 
     let compilePath = function (path) {
+
+        path = path.trim().replace('||', '__or__operate__');
+        let tmpPathExp = path.split('|');
+
+        tmpPathExp = tmpPathExp.map(function (exp) {
+            return exp.replace("__or__operate__", "||");
+        });
+
+        path = tmpPathExp[0];
         let length = path.length;
 
         let stack = [];
@@ -843,6 +852,10 @@ class Parse {
                 let filtExpr = filterName.split(':');
                 filterName = filtExpr[0];
                 let filterInputs = filtExpr.slice(1);
+
+                filterInputs = filterInputs.map(function (inputExpr) {
+                    return new Parse().compile(inputExpr, scope);
+                });
                 result = __WEBPACK_IMPORTED_MODULE_1__filter__["a" /* default */].calculate(result, filterName, filterInputs);
             });
 

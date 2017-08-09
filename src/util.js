@@ -105,6 +105,15 @@ let splitMultiDepFromOneExpersion = function( expr ) {
     }
 
     let compilePath = function( path ) {
+
+        path = path.trim().replace('||', '__or__operate__');
+        let tmpPathExp = path.split('|');
+
+        tmpPathExp = tmpPathExp.map( function( exp ) {
+            return exp.replace("__or__operate__", "||");
+        });
+
+        path = tmpPathExp[0];
         let length = path.length;
 
         let stack = [];
