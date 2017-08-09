@@ -339,6 +339,9 @@ window.biu = __WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */];
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__observer__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__compile__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__filter__ = __webpack_require__(5);
+
+
 
 
 
@@ -366,6 +369,8 @@ class Biu {
 
         // 调用directive 的render方法, 使directive 渲染自己
         this.render();
+
+        this.filter = __WEBPACK_IMPORTED_MODULE_3__filter__["a" /* default */];
     }
 
     // 目前只支持解析{{value}} 这样的文本节点的渲染
@@ -396,6 +401,10 @@ class Biu {
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = Biu;
 
+
+Biu.filter = function (filterName, filterCall) {
+    __WEBPACK_IMPORTED_MODULE_3__filter__["a" /* default */].filter(filterName, filterCall);
+};
 
 class Directive {
     constructor(vue, element) {
@@ -434,9 +443,20 @@ class Directive {
         var reg = /\{\{([^\}]*)\}\}/g;;
         tpl.replace(reg, function (raw, key, offset, str) {
             key = key.trim();
+            key = key.replace('||', 'or_replace');
 
-            if (key.indexOf('+') > -1) {
-                var subKeys = key.split('+');
+            // 处理filter, 需要先把|| 操作符替换掉, 然后取出其他的都是filter
+            // 目前先处理不带另外输入的filter, 之后再处理可以另外传参数
+            var filters = key.split('|');
+
+            for (let i = 0; i < filters.length; i++) {
+                filters[i] = filters[i].replace('or_replace', '||');
+            }
+
+            var mainExpr = filters[0];
+
+            if (mainExpr.indexOf('+') > -1) {
+                var subKeys = mainExpr.split('+');
 
                 var depsList = subKeys.map(function (item) {
                     return item.trim();
@@ -618,6 +638,9 @@ class Watcher {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__filter__ = __webpack_require__(5);
+
+
 
 
 
@@ -656,6 +679,14 @@ class Parse {
     }
 
     compile(expr, scope) {
+
+        expr = expr.replace('||', 'or_replace');
+        var filters = expr.split('|');
+        expr = filters[0];
+        filters = filters.slice(1);
+
+        let self = this;
+
         var stack = [];
 
         var subPath = [];
@@ -743,7 +774,21 @@ class Parse {
         processExpression('+');
 
         stack.pop();
-        return stack.pop();
+
+        let exeFilters = function (input, filters) {
+
+            var result = input;
+
+            filters.forEach(function (filterName) {
+                result = __WEBPACK_IMPORTED_MODULE_1__filter__["a" /* default */].calculate(result, filterName);
+            });
+
+            return result;
+        };
+
+        var tmpFinalResult = stack.pop();
+
+        return exeFilters(tmpFinalResult, filters);
     }
 
     parseSubExpr(lastPath) {
@@ -769,20 +814,62 @@ class Parse {
 /* harmony export (immutable) */ __webpack_exports__["a"] = Parse;
 
 
+/***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+
+
 class Filter {
 
     constructor() {
         this.filters = {};
     }
 
-    createFilter(name, cb) {
-        var filterCb = cb();
-        this.filters[name] = filterCb;
+    filter(filterName, filterCall) {
+
+        if (filterName && filterCall) {
+            this.filters[filterName] = {
+                call: undefined,
+                originalCall: filterCall
+            };
+        }
+        return this;
+    }
+
+    calculate(input, filterName) {
+        filterName = filterName ? filterName.trim() : '';
+
+        var filterProcess = this.filters[filterName];
+
+        if (filterProcess) {
+            if (filterProcess.call && typeof filterProcess.call == 'function') {
+                return filterProcess.call(input);
+            } else if (filterProcess.originalCall && typeof filterProcess.originalCall == 'function') {
+                filterProcess.call = filterProcess.originalCall();
+                return filterProcess.call(input);
+            }
+        }
+
+        return input;
     }
 
 }
-/* unused harmony export Filter */
 
+const filter = new Filter();
+
+filter.filter('currency', function () {
+    return function (input) {
+        return '¥' + input;
+    };
+}).filter('date', function () {
+    return function (input) {
+        return 'date' + input;
+    };
+});
+
+/* harmony default export */ __webpack_exports__["a"] = (filter);
 
 /***/ })
 /******/ ]);

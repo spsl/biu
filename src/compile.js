@@ -1,10 +1,12 @@
 
 import { splitExpersionAttr } from './util';
 
+import filter from './filter';
+
  export default class Parse{ 
 
-    constructor( ) {
-        
+    constructor(  ) {
+    
     }
     
     getValue( attr, scope ) {
@@ -42,6 +44,14 @@ import { splitExpersionAttr } from './util';
 
 
     compile( expr, scope ) {
+
+        expr = expr.replace('||', 'or_replace');
+        var filters = expr.split('|');
+        expr = filters[0];
+        filters = filters.slice(1);
+
+        let self = this;
+
         var stack = [];
 
         var subPath = [];
@@ -129,7 +139,26 @@ import { splitExpersionAttr } from './util';
         processExpression('+');
 
         stack.pop();
-        return stack.pop();
+
+        let exeFilters = function( input, filters ) {
+        
+            var result = input;
+            
+            filters.forEach( function( filterName ) {
+                result = filter.calculate( result, filterName );
+            });
+            
+
+            return result;
+        }
+
+
+        var tmpFinalResult = stack.pop();
+
+
+
+
+        return exeFilters( tmpFinalResult, filters ) ;
     }
 
     parseSubExpr( lastPath ) {
@@ -155,15 +184,3 @@ import { splitExpersionAttr } from './util';
 }
 
 
-export class Filter{ 
-
-    constructor() {
-        this.filters = {};
-    }
-
-    createFilter( name, cb ) {
-        var filterCb = cb();
-        this.filters[name] = filterCb;
-    }
-
-}

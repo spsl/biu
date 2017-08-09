@@ -28,7 +28,7 @@ export default class Biu {
         // 调用directive 的render方法, 使directive 渲染自己
         this.render();
 
-        this._filter = filter;
+        this.filter = filter;
     }
 
 
@@ -57,9 +57,12 @@ export default class Biu {
        });
     }
 
-    filter( filterName, filterCall ) {
-        this._filter.filter( filterName, filterCall );
-    }
+    
+}
+
+
+Biu.filter = function( filterName, filterCall ) {
+    filter.filter( filterName, filterCall );
 }
 
 
@@ -104,9 +107,10 @@ export default class Biu {
         var reg = /\{\{([^\}]*)\}\}/g;;
         tpl.replace(reg, function (raw, key, offset, str) {
             key = key.trim();
-
-
             key = key.replace('||', 'or_replace');
+
+            // 处理filter, 需要先把|| 操作符替换掉, 然后取出其他的都是filter
+            // 目前先处理不带另外输入的filter, 之后再处理可以另外传参数
             var filters = key.split('|');
 
             for( let i = 0 ; i < filters.length; i ++ ) {
@@ -123,13 +127,13 @@ export default class Biu {
                 } );
 
                 result[raw] = {
-                    key: mainExpr,
+                    key: key,
                     depsList: depsList
                 };
 
             } else {
                 result[raw] = {
-                    key: mainExpr
+                    key: key
                 };
             }
 

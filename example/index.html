@@ -5,7 +5,8 @@
 
 		<div id="app">
 		    <p id="1234">姓名：{{ user["name"] +  user.name }}, {{ user["name"] + '   hello world  ' + 23 }}</p>
-		    <p id="name">年龄：{{ user['age'] + 123 + 234.234}} </p>
+			<p id="name">年龄：{{ user['age'] | currency }} </p>
+			<p id="name">年龄：{{ user['age'] | test }} </p>
 		</div>
 		
 		
@@ -19,6 +20,14 @@
 					sex: '男'
 				}
 			};
+
+			Biu.filter('test', function() {
+				return function(input) {
+					return 'test-' + input;
+				}
+			})
+
+
 
 			var vue = new Biu({
 				el: '#app',
