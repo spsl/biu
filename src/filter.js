@@ -18,17 +18,20 @@ class Filter {
     }
 
 
-    calculate( input, filterName ) {
+    calculate( input, filterName, otherInput ) {
+
+        otherInput = otherInput || [];
+        otherInput.unshift( input );
         filterName = filterName ? filterName.trim() : '';
 
         var filterProcess = this.filters[filterName];
 
         if( filterProcess ) {
             if( filterProcess.call && typeof filterProcess.call == 'function' ) {
-                return filterProcess.call( input );
+                return filterProcess.call.apply( {}, otherInput );
             } else if ( filterProcess.originalCall && typeof filterProcess.originalCall == 'function' ) {
                 filterProcess.call = filterProcess.originalCall();
-                return filterProcess.call( input );
+                return filterProcess.call.apply( {}, otherInput );
             } 
         }
 

@@ -145,7 +145,10 @@ import filter from './filter';
             var result = input;
             
             filters.forEach( function( filterName ) {
-                result = filter.calculate( result, filterName );
+                let filtExpr = filterName.split(':');
+                filterName = filtExpr[0];
+                let filterInputs = filtExpr.slice(1);
+                result = filter.calculate( result, filterName, filterInputs );
             });
             
 

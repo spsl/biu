@@ -61,7 +61,7 @@ var biu =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -322,8 +322,68 @@ let splitMultiDepFromOneExpersion = function (expr) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+
+
+class Filter {
+
+    constructor() {
+        this.filters = {};
+    }
+
+    filter(filterName, filterCall) {
+
+        if (filterName && filterCall) {
+            this.filters[filterName] = {
+                call: undefined,
+                originalCall: filterCall
+            };
+        }
+        return this;
+    }
+
+    calculate(input, filterName, otherInput) {
+
+        otherInput = otherInput || [];
+        otherInput.unshift(input);
+        filterName = filterName ? filterName.trim() : '';
+
+        var filterProcess = this.filters[filterName];
+
+        if (filterProcess) {
+            if (filterProcess.call && typeof filterProcess.call == 'function') {
+                return filterProcess.call.apply({}, otherInput);
+            } else if (filterProcess.originalCall && typeof filterProcess.originalCall == 'function') {
+                filterProcess.call = filterProcess.originalCall();
+                return filterProcess.call.apply({}, otherInput);
+            }
+        }
+
+        return input;
+    }
+
+}
+
+const filter = new Filter();
+
+filter.filter('currency', function () {
+    return function (input) {
+        return '¥' + input;
+    };
+}).filter('date', function () {
+    return function (input) {
+        return 'date' + input;
+    };
+});
+
+/* harmony default export */ __webpack_exports__["a"] = (filter);
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__biu__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__biu__ = __webpack_require__(3);
 
 
 console.log(__WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */]);
@@ -332,14 +392,14 @@ window.Biu = __WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */];
 window.biu = __WEBPACK_IMPORTED_MODULE_0__biu__["a" /* default */];
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__observer__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__compile__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__observer__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__compile__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__filter__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__filter__ = __webpack_require__(1);
 
 
 
@@ -501,7 +561,7 @@ class Directive {
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -633,12 +693,12 @@ class Watcher {
 }
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__filter__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__filter__ = __webpack_require__(1);
 
 
 
@@ -780,7 +840,10 @@ class Parse {
             var result = input;
 
             filters.forEach(function (filterName) {
-                result = __WEBPACK_IMPORTED_MODULE_1__filter__["a" /* default */].calculate(result, filterName);
+                let filtExpr = filterName.split(':');
+                filterName = filtExpr[0];
+                let filterInputs = filtExpr.slice(1);
+                result = __WEBPACK_IMPORTED_MODULE_1__filter__["a" /* default */].calculate(result, filterName, filterInputs);
             });
 
             return result;
@@ -813,63 +876,6 @@ class Parse {
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = Parse;
 
-
-/***/ }),
-/* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-
-
-class Filter {
-
-    constructor() {
-        this.filters = {};
-    }
-
-    filter(filterName, filterCall) {
-
-        if (filterName && filterCall) {
-            this.filters[filterName] = {
-                call: undefined,
-                originalCall: filterCall
-            };
-        }
-        return this;
-    }
-
-    calculate(input, filterName) {
-        filterName = filterName ? filterName.trim() : '';
-
-        var filterProcess = this.filters[filterName];
-
-        if (filterProcess) {
-            if (filterProcess.call && typeof filterProcess.call == 'function') {
-                return filterProcess.call(input);
-            } else if (filterProcess.originalCall && typeof filterProcess.originalCall == 'function') {
-                filterProcess.call = filterProcess.originalCall();
-                return filterProcess.call(input);
-            }
-        }
-
-        return input;
-    }
-
-}
-
-const filter = new Filter();
-
-filter.filter('currency', function () {
-    return function (input) {
-        return '¥' + input;
-    };
-}).filter('date', function () {
-    return function (input) {
-        return 'date' + input;
-    };
-});
-
-/* harmony default export */ __webpack_exports__["a"] = (filter);
 
 /***/ })
 /******/ ]);
