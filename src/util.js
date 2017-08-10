@@ -10,6 +10,22 @@ let checkIsDirective = function( element ) {
 
 
 
+let evalExpersion = function( expr, scope ) {
+
+    let preExpr = "";
+
+    scope = scope || {};
+
+    for( var attr in scope ) {
+         let oneVar = " var " + attr + " = scope['"+ attr +"'];\n";
+        preExpr = preExpr + oneVar;
+    }
+
+    let exeFun = new Function( 'scope', preExpr + " return " + expr + ";" );
+
+    return exeFun.call( scope, scope );
+}
+
 
 
 
@@ -264,4 +280,4 @@ let splitMultiDepFromOneExpersion = function( expr ) {
     return compilePath( expr );
 }
 
-export { checkIsDirective, splitMultiDepFromOneExpersion, splitExpersionAttr };
+export { checkIsDirective, splitMultiDepFromOneExpersion, splitExpersionAttr, evalExpersion };
