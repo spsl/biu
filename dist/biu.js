@@ -70,8 +70,9 @@ var biu =
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return checkIsDirective; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return splitMultiDepFromOneExpersion; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return splitExpersionAttr; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return splitMultiDepFromOneExpersion; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return splitExpersionAttr; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return evalExpersion; });
 
 let checkIsDirective = function (element) {
     if (element.nodeType === 3) {
@@ -80,6 +81,22 @@ let checkIsDirective = function (element) {
         }
     }
     return false;
+};
+
+let evalExpersion = function (expr, scope) {
+
+    let preExpr = "";
+
+    scope = scope || {};
+
+    for (var attr in scope) {
+        let oneVar = " var " + attr + " = scope['" + attr + "'];\n";
+        preExpr = preExpr + oneVar;
+    }
+
+    let exeFun = new Function('scope', preExpr + " return " + expr + ";");
+
+    return exeFun.call(scope, scope);
 };
 
 let randomAttrReplace = function () {
@@ -504,7 +521,8 @@ class Directive {
 
     // 查找值, 把字符串形式的 user.name 绑定到 context 上面
     getValue(context, key) {
-        return new __WEBPACK_IMPORTED_MODULE_1__compile__["a" /* default */]().compile(key, context);
+
+        return new __WEBPACK_IMPORTED_MODULE_1__compile__["a" /* default */]().evalValue(key, context);
     }
 
     parseDeps(tpl) {
@@ -666,7 +684,7 @@ class Watcher {
     // 计算依赖, 找到最小的依赖值(即最后面的属性), 然后设置监听
     calculateDep(event) {
 
-        var compileResult = Object(__WEBPACK_IMPORTED_MODULE_0__util__["c" /* splitMultiDepFromOneExpersion */])(event);
+        var compileResult = Object(__WEBPACK_IMPORTED_MODULE_0__util__["d" /* splitMultiDepFromOneExpersion */])(event);
 
         if (compileResult.isConst) {
             return;
@@ -747,12 +765,63 @@ class Parse {
         return result;
     }
 
+    evalValue(expr, scope) {
+        expr = expr.replace('||', 'or_replace');
+        var filters = expr.split('|');
+        expr = filters[0];
+        filters = filters.slice(1);
+
+        var tmpResult = Object(__WEBPACK_IMPORTED_MODULE_0__util__["b" /* evalExpersion */])(expr, scope);
+
+        let exeFilters = function (input, filters) {
+
+            var result = input;
+
+            filters.forEach(function (filterName) {
+                let filtExpr = filterName.split(':');
+                filterName = filtExpr[0];
+                let filterInputs = filtExpr.slice(1);
+
+                filterInputs = filterInputs.map(function (inputExpr) {
+                    return new Parse().compile(inputExpr, scope);
+                });
+                result = __WEBPACK_IMPORTED_MODULE_1__filter__["a" /* default */].calculate(result, filterName, filterInputs);
+            });
+
+            return result;
+        };
+
+        return exeFilters(tmpResult, filters);
+    }
+
     compile(expr, scope) {
 
         expr = expr.replace('||', 'or_replace');
         var filters = expr.split('|');
         expr = filters[0];
         filters = filters.slice(1);
+
+        var tmpResult = Object(__WEBPACK_IMPORTED_MODULE_0__util__["b" /* evalExpersion */])(expr, scope);
+
+        let exeFilters = function (input, filters) {
+
+            var result = input;
+
+            filters.forEach(function (filterName) {
+                let filtExpr = filterName.split(':');
+                filterName = filtExpr[0];
+                let filterInputs = filtExpr.slice(1);
+
+                filterInputs = filterInputs.map(function (inputExpr) {
+                    return new Parse().compile(inputExpr, scope);
+                });
+                result = __WEBPACK_IMPORTED_MODULE_1__filter__["a" /* default */].calculate(result, filterName, filterInputs);
+            });
+
+            return result;
+        };
+
+        return exeFilters(tmpResult, filters);
 
         let self = this;
 
@@ -801,7 +870,7 @@ class Parse {
 
             let path = subPath.join('');
             subPath = [];
-            var value = Object(__WEBPACK_IMPORTED_MODULE_0__util__["b" /* splitExpersionAttr */])(path, scope);
+            var value = Object(__WEBPACK_IMPORTED_MODULE_0__util__["c" /* splitExpersionAttr */])(path, scope);
             let lastOper = stack.pop();
 
             if (lastOper) {
@@ -843,24 +912,6 @@ class Parse {
         processExpression('+');
 
         stack.pop();
-
-        let exeFilters = function (input, filters) {
-
-            var result = input;
-
-            filters.forEach(function (filterName) {
-                let filtExpr = filterName.split(':');
-                filterName = filtExpr[0];
-                let filterInputs = filtExpr.slice(1);
-
-                filterInputs = filterInputs.map(function (inputExpr) {
-                    return new Parse().compile(inputExpr, scope);
-                });
-                result = __WEBPACK_IMPORTED_MODULE_1__filter__["a" /* default */].calculate(result, filterName, filterInputs);
-            });
-
-            return result;
-        };
 
         var tmpFinalResult = stack.pop();
 

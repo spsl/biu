@@ -3,7 +3,7 @@ import Observer from './observer';
 
 import Parse from './compile';
 
-import {checkIsDirective} from './util';
+import { checkIsDirective } from './util';
 
 import filter from './filter';
 
@@ -98,7 +98,9 @@ Biu.filter = function( filterName, filterCall ) {
 
     // 查找值, 把字符串形式的 user.name 绑定到 context 上面
     getValue( context, key ) {
-        return new Parse().compile(key, context);
+       
+
+        return new Parse().evalValue(key, context);
     }
 
 
