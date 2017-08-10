@@ -280,4 +280,178 @@ let splitMultiDepFromOneExpersion = function( expr ) {
     return compilePath( expr );
 }
 
+
+
+    function StateMachine( expersion ) {
+
+        let start = {
+            '"': {
+                next: double_str_const_start,
+                action: ''
+            },
+            "'": {
+                next: single_str_const_start,
+                action: ''
+            },
+            'number': {
+                next: number_const,
+                action: null
+            },
+            '-': {
+                next: number_const,
+                action: null
+            },
+            '.': {
+                next: number_const,
+                action: null
+            },
+            'ascll': {
+                next: variable,
+                action: null
+            }
+        };
+
+        let double_str_const_start = {
+            "'": {
+                next:''
+            },
+            'number': {
+                next: str_const_content
+            },
+            'ascll': {
+                next: str_const_content
+            },
+            '.': {
+                next: str_const_content
+            },
+            '[': {
+                next: str_const_content
+            },
+            ']': {
+                next: str_const_content
+            }
+        }
+
+        let str_const_content = {
+            'number': {
+                next: str_const_content
+            },
+            'ascll': {
+                next: str_const_content
+            },
+            '.': {
+                next: str_const_content
+            },
+            '[': {
+                next: str_const_content
+            },
+            ']': {
+                next: str_const_content
+            },
+            '"': {
+
+            }
+        }
+
+        let variable = {
+            'ascll': {
+                next: variable
+            },
+            'number': {
+                next: variable
+            },
+            '.': {
+                next: variable,
+                action: [ pushWorld ]
+            },
+            '_': {
+                next: variable
+            },
+            '[': {
+                next: sub_expr_start,
+                action: [ pushExpr ]
+            },
+            ']': {
+                next: ''
+            }
+        }
+
+        let sub_expr_start = {};
+
+
+        function pushWorld( ) {
+            expersions.push( tmpWord.join('') );
+
+        }
+
+        let result = [];
+        
+        function pushExpr( ) {
+            result.push( expersions );
+            expersions = [];
+        }
+
+
+
+        function checkSymbol( symbol ) {
+            function checkIsNumber( ) {
+                return symbol >=  '0' && symbol <= '0';
+            }
+
+            function checkIsAscll( ) {
+                return symbol >= 'a' && symbol <= 'z' || symbol >= 'A' && symbol <= 'Z' || symbol == '_';
+            }
+
+            function checkIsJian( ) {
+                return symbol === '-';
+            }
+
+            if( checkIsNumber( ) ) {
+                return 'number';
+            }
+
+            if( checkIsAscll( ) ) {
+                return 'ascll';
+            }
+
+            if( checkIsJian( ) ) {
+                return '-';
+            }
+
+            return symbol;    
+        }
+        let tmpWord = [];
+        let expersions = [];
+
+        function engine( ) {
+
+            let length = expersion.length;
+
+            let currentState = start;
+            
+            for( let i = 0 ; i < length; i ++ ) {
+
+                let symbolType = checkSymbol( expersion[i] );
+
+                currentState = start[symbolType];
+
+                if( currentState.action ) {
+                    currentState.action.forEach( function (actionCb ) {
+                        actionCb();
+                    });
+                }
+
+                tmpWord.push( expersion[i] );
+            }
+
+
+        }
+
+
+
+
+    }
+
+
+
 export { checkIsDirective, splitMultiDepFromOneExpersion, splitExpersionAttr, evalExpersion };
