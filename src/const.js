@@ -1,0 +1,5 @@
+const REPLACE_VARIABLE_PLACEHOLDER = '__$__';
+
+export {
+    REPLACE_VARIABLE_PLACEHOLDER
+}
